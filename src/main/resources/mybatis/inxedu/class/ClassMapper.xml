@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ClassMapper">
+	<sql id="edu_class_column">
+	EDU_CLASS.CLASS_ID,
+	EDU_CLASS.CLASS_NAME,
+	EDU_CLASS.GRADE_ID,
+	EDU_CLASS.MAJOR_ID
+	</sql>
+	<sql id="edu_class_property">
+	#{classId},
+	#{className},
+	#{gradeId},
+	#{majorId}
+	</sql>
+	<resultMap type="Class" id="ClassResult">
+	<result property="classId" column="CLASS_ID"/>
+	<result property="className" column="CLASS_NAME"/>
+	<result property="gradeId" column="GRADE_ID"/>
+	<result property="majorId" column="MAJOR_ID"/>
+	</resultMap>
+	
+	<resultMap type="ClassDto" id="ClassDtoResult">
+	<result property="classId" column="CLASS_ID"/>
+	<result property="className" column="CLASS_NAME"/>
+	<result property="gradeId" column="GRADE_ID"/>
+	<result property="gradeName" column="GRADE_NAME"/>
+	<result property="majorId" column="MAJOR_ID"/>
+	<result property="majorName" column="MAJOR_NAME"/>
+	<result property="collegeId" column="COLLEGE_ID"/>
+	<result property="collegeName" column="COLLEGE_NAME"/>
+	</resultMap>
+	
+	<!-- 创建班级 -->
+	<insert id="createClass" parameterType="Class" useGeneratedKeys="true" keyColumn="CLASS_ID" keyProperty="classId">
+	INSERT INTO EDU_CLASS(<include refid="edu_class_column"/>)
+	VALUE(<include refid="edu_class_property"/>)
+	</insert>
+	
+	<!-- 通过班级ID，查询班级记录 -->
+	<select id="queryClassById" parameterType="int" resultMap="ClassResult">
+	SELECT <include refid="edu_class_column"/> FROM EDU_CLASS WHERE EDU_CLASS.CLASS_ID=#{value}
+	</select>
+	
+	<select id="queryClassDtoById" parameterType="int" resultMap="ClassDtoResult">
+	SELECT <include refid="edu_class_column" />,
+	EDU_GRADE.GRADE_NAME,
+	EDU_MAJOR.MAJOR_ID,
+	EDU_MAJOR.MAJOR_NAME,
+	EDU_COLLEGE.COLLEGE_ID,
+	EDU_COLLEGE.COLLEGE_NAME
+	FROM EDU_CLASS
+	LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_CLASS.GRADE_ID
+	LEFT JOIN EDU_MAJOR ON EDU_MAJOR.MAJOR_ID = EDU_CLASS.MAJOR_ID
+	LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID
+    WHERE EDU_CLASS.CLASS_ID=#{value}
+	</select>
+	
+	
+	<!-- 通过年级ID，查询班级记录 -->
+	<select id="queryClassByGrade" parameterType="int" resultMap="ClassResult">
+	SELECT <include refid="edu_class_column"/> FROM EDU_CLASS WHERE EDU_CLASS.GRADE_ID=#{value}
+	ORDER BY EDU_CLASS.CLASS_NAME ASC
+	</select>
+	<select id="queryClassByGradeCount" parameterType="int" resultType="int">
+	SELECT COUNT(1) FROM EDU_CLASS WHERE EDU_CLASS.GRADE_ID=#{value}
+	</select>
+	<!-- 通过专业ID，查询班级记录 -->
+	<select id="queryClassByMajor" parameterType="int" resultMap="ClassResult">
+	SELECT <include refid="edu_class_column"/> FROM EDU_CLASS WHERE EDU_CLASS.MAJOR_ID=#{value}
+	ORDER BY EDU_CLASS.CLASS_NAME ASC
+	</select>
+	<select id="queryClassByMajorCount" parameterType="int" resultType="int">
+	SELECT COUNT(1) FROM EDU_CLASS WHERE EDU_CLASS.MAJOR_ID=#{value}
+	</select>
+	<!-- 通过专业ID和年级ID，查询班级记录 -->
+	<select id="queryClasses" parameterType="java.util.Map" resultMap="ClassResult">
+	SELECT <include refid="edu_class_column"/> FROM EDU_CLASS
+	WHERE EDU_CLASS.MAJOR_ID=#{majorId} AND EDU_CLASS.GRADE_ID=#{gradeId}
+	ORDER BY EDU_CLASS.CLASS_NAME ASC
+	</select>
+	<select id="queryClassesCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_CLASS 
+	WHERE EDU_CLASS.MAJOR_ID=#{majorId} AND EDU_CLASS.GRADE_ID=#{gradeId}
+	</select>
+	<!-- 修改班级名称 -->
+	<update id="updateClass" parameterType="Class">
+	UPDATE EDU_CLASS SET 
+	EDU_CLASS.CLASS_NAME=#{className}
+	WHERE EDU_CLASS.CLASS_ID=#{classId}
+	</update>
+	
+	<!-- 删除班级 -->
+	<delete id="deleteClass" parameterType="int">
+	DELETE FROM EDU_CLASS WHERE EDU_CLASS.CLASS_ID=#{classId}
+	</delete>
+	
+	<select id="getClassListPage" resultMap="ClassDtoResult" parameterType="java.util.HashMap">
+		select
+		<include refid="edu_class_column" />,
+	EDU_GRADE.GRADE_NAME,
+	EDU_MAJOR.MAJOR_ID,
+	EDU_MAJOR.MAJOR_NAME,
+	EDU_COLLEGE.COLLEGE_ID,
+	EDU_COLLEGE.COLLEGE_NAME
+	FROM EDU_CLASS
+	LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_CLASS.GRADE_ID
+	LEFT JOIN EDU_MAJOR ON EDU_MAJOR.MAJOR_ID = EDU_CLASS.MAJOR_ID
+	LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID
+		<where>
+		    <if test="e.keyWord!=null and e.keyWord!=''">
+		    AND (EDU_CLASS.CLASS_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_GRADE.GRADE_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_MAJOR.MAJOR_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.classId !=null and e.classId > 0 ">
+				AND EDU_CLASS.CLASS_ID = #{e.classId}
+			</if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+			<if test="e.majorId !=null and e.majorId > 0 ">
+				AND EDU_MAJOR.MAJOR_ID = #{e.majorId}
+			</if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+		order by EDU_COLLEGE.COLLEGE_NAME ASC,EDU_MAJOR.MAJOR_NAME ASC,EDU_GRADE.GRADE_NAME ASC,EDU_CLASS.CLASS_NAME ASC
+		<include refid="publicMapper.pageEnd" />
+	</select>
+	<select id="getClassListPageCount" resultType="int" parameterType="java.util.HashMap">
+		select
+		count(1)
+		from edu_class
+		LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_CLASS.GRADE_ID
+	    LEFT JOIN EDU_MAJOR ON EDU_MAJOR.MAJOR_ID = EDU_CLASS.MAJOR_ID
+	    LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID
+		<where>
+			<if test="e.keyWord!=null and e.keyWord!=''">
+		    AND (EDU_CLASS.CLASS_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_GRADE.GRADE_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_MAJOR.MAJOR_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.classId !=null and e.classId > 0 ">
+				AND EDU_CLASS.CLASS_ID = #{e.classId}
+			</if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+			<if test="e.majorId !=null and e.majorId > 0 ">
+				AND EDU_MAJOR.MAJOR_ID = #{e.majorId}
+			</if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+	</select>
+
+</mapper>

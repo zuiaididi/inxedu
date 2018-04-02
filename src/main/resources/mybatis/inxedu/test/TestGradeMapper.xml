@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestGradeMapper">
+	<sql id="edu_test_grade_column">
+	EDU_TEST_GRADE.TEST_GRADE_ID,
+	EDU_TEST_GRADE.TEST_SUBMIT_ID,
+	EDU_TEST_GRADE.TEST_GRADE_CREATETIME,
+	EDU_TEST_GRADE.TEST_GRADE_UPDATETIME,
+	EDU_TEST_GRADE.TEST_GRADE,
+	EDU_TEST_GRADE.TEST_COMMENT
+	</sql>
+	<sql id="edu_test_grade_property">
+	#{testGradeId},
+	#{testSubmitId},
+	#{testCreateGradeTime},
+	#{testUpdateGradeTime},
+	#{testGrade},
+	#{testComment}
+	</sql>
+	<resultMap type="TestGrade" id="TestGradeResult">
+	<result property="testGradeId" column="TEST_GRADE_ID"/>
+	<result property="testSubmitId" column="TEST_SUBMIT_ID"/>
+	<result property="testCreateGradeTime" column="TEST_GRADE_CREATETIME"/>
+	<result property="testUpdateGradeTime" column="TEST_GRADE_UPDATETIME"/>
+	<result property="testGrade" column="TEST_GRADE"/>
+	<result property="testComment" column="TEST_COMMENT"/>
+	<result property="testScore" column="TEST_SCORE"/>
+	</resultMap>
+	<resultMap type="TestGradeDto" id="TestGradeDtoResult">
+	<result property="testGradeId" column="TEST_GRADE_ID"/>
+	<result property="testSubmitId" column="TEST_SUBMIT_ID"/>
+	<result property="testCreateGradeTime" column="TEST_GRADE_CREATETIME"/>
+	<result property="testUpdateGradeTime" column="TEST_GRADE_UPDATETIME"/>
+	<result property="testGrade" column="TEST_GRADE"/>
+	<result property="testComment" column="TEST_COMMENT"/>
+	<result property="testScore" column="TEST_SCORE"/>
+	
+	<result property="userId" column="USER_ID"/>
+	<result property="testId" column="TEST_ID"/>
+	<result property="testSubmitTime" column="TEST_SUBMIT_TIME"/>
+	<result property="testSubmitAnswer" column="TEST_SUBMIT_ANSWER"/>
+	<result property="studentNumber" column="STUDENT_NUMBER"/>
+	<result property="userName" column="USER_NAME"/>
+	<result property="courseName" column="COURSE_NAME"/>
+	<result property="teacherName" column="TEACHER_NAME"/>
+	<result property="testTitle" column="TEST_TITLE"/>
+	</resultMap>
+	<!-- 创建测验成绩 -->
+	<insert id="createTestGrade" parameterType="TestGrade" useGeneratedKeys="true" keyColumn="TEST_GRADE_ID" keyProperty="testGradeId">
+	INSERT INTO EDU_TEST_GRADE(<include refid="edu_test_grade_column"/>)
+	VALUE(<include refid="edu_test_grade_property"/>)
+	</insert>
+	
+	<!-- 通过测验成绩ID，查询测验成绩记录 -->
+	<select id="queryTestGradeByTestGradeId" parameterType="int" resultMap="TestGradeResult">
+	SELECT <include refid="edu_test_grade_column"/>,
+	EDU_TEST.TEST_SCORE
+	FROM EDU_TEST_GRADE
+	INNER JOIN EDU_TEST_SUBMIT ON EDU_TEST_SUBMIT.TEST_SUBMIT_ID=EDU_TEST_GRADE.TEST_SUBMIT_ID
+	INNER JOIN EDU_TEST ON EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	WHERE EDU_TEST_GRADE.TEST_GRADE_ID=#{value}
+	</select>
+	<!-- 通过测验成绩ID，查询测验成绩记录 -->
+	<select id="queryTestGradeDtoByTestGradeId" parameterType="int" resultMap="TestGradeDtoResult">
+	SELECT EDU_TEST_GRADE.TEST_GRADE_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_GRADE.TEST_GRADE_CREATETIME,
+	EDU_TEST_GRADE.TEST_GRADE_UPDATETIME,
+	EDU_TEST_GRADE.TEST_GRADE,
+	EDU_TEST_GRADE.TEST_COMMENT,
+	EDU_TEST.TEST_SCORE,
+	EDU_TEST_SUBMIT.TEST_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME,
+	FROM EDU_TEST_GRADE
+	INNER JOIN EDU_TEST_SUBMIT ON EDU_TEST_SUBMIT.TEST_SUBMIT_ID=EDU_TEST_GRADE.TEST_SUBMIT_ID
+	INNER JOIN EDU_TEST ON EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	WHERE EDU_TEST_GRADE.TEST_GRADE_ID=#{value}
+	</select>
+	
+	<!-- 通过测验提交ID，查询测验成绩记录 -->
+	<select id="queryTestGradeByTestSubmitId" parameterType="int" resultMap="TestGradeResult">
+	SELECT <include refid="edu_test_grade_column"/>,
+	EDU_TEST.TEST_SCORE
+	FROM EDU_TEST_GRADE
+	INNER JOIN EDU_TEST_SUBMIT ON EDU_TEST_SUBMIT.TEST_SUBMIT_ID=EDU_TEST_GRADE.TEST_SUBMIT_ID
+	INNER JOIN EDU_TEST ON EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	WHERE EDU_TEST_GRADE.TEST_SUBMIT_ID=#{value}
+	</select>
+	
+	<!-- 修改测验记录-->
+	<update id="updateTestGrade" parameterType="TestGrade">
+	UPDATE EDU_TEST_GRADE SET 
+	EDU_TEST_GRADE.TEST_GRADE=#{testGrade},
+	EDU_TEST_GRADE.TEST_GRADE_UPDATETIME=#{testUpdateGradeTime},
+	EDU_TEST_GRADE.TEST_COMMENT=#{testComment}
+	WHERE EDU_TEST_GRADE.TEST_GRADE_ID=#{testGradeId}
+	</update>
+	
+	
+	<!-- 查询测验记录列表-->
+	<select id="queryTestGradeDtoList" parameterType="java.util.Map" resultMap="TestGradeDtoResult">
+	SELECT EDU_TEST_GRADE.TEST_GRADE_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_GRADE.TEST_GRADE_CREATETIME,
+	EDU_TEST_GRADE.TEST_GRADE_UPDATETIME,
+	EDU_TEST_GRADE.TEST_GRADE,
+	EDU_TEST_GRADE.TEST_COMMENT,
+	EDU_TEST.TEST_SCORE,
+	EDU_USER.USER_ID,
+	EDU_USER.USER_NAME,
+	EDU_USER.STUDENT_NUMBER,
+	EDU_TEST_SUBMIT.TEST_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME
+	FROM EDU_USER
+	left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID ID = edu_user.USER_ID 
+	LEFT JOIN (
+	EDU_TEST LEFT JOIN EDU_TEST_SUBMIT ON (EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	    <if test="testId!=null and testId>0">
+		AND EDU_TEST.TEST_ID=#{testId}
+		</if>)
+	
+	LEFT JOIN EDU_TEST_GRADE ON (EDU_TEST_GRADE.TEST_SUBMIT_ID=EDU_TEST_SUBMIT.TEST_SUBMIT_ID)
+	
+	)ON EDU_TEST_SUBMIT.USER_ID=EDU_USER.USER_ID
+	<where>
+	    <if test="teacherId==null or teacherId==0">
+		AND EDU_USER.USER_ID = 0
+		</if>
+		<if test="teacherId!=null and teacherId==1">
+		</if>
+		<if test="teacherId!=null and teacherId>1">
+			AND EDU_USER.USER_ID IN(SELECT EDU_USER_TEACHER.USER_ID FROM EDU_USER_TEACHER INNER JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_USER_TEACHER.TERM_ID 
+			WHERE EDU_USER_TEACHER.TEACHER_ID = #{teacherId}
+		    <if test="gradeTermId!=null and gradeTermId!=0">
+		    AND edu_term.GRADE_ID = #{gradeTermId}
+		    </if>
+		    <if test="termId!=null and termId!=0">
+		    AND edu_term.TERM_ID = #{termId}
+		    </if>
+		    <if test="courseId!=null">
+		    AND EDU_USER_TEACHER.COURSE_ID = #{courseId}
+		    </if>)
+		  </if>
+		<if test="classId!=null and classId!=0">
+		AND edu_class.CLASS_ID = #{classId}
+		</if>
+		<if test="gradeId!=null and gradeId!=0">
+		AND edu_grade.GRADE_ID = #{gradeId}
+		</if>
+		<if test="majorId!=null and majorId!=0">
+	    AND edu_major.MAJOR_ID = #{majorId}
+		</if>
+		<if test="collegeId!=null and collegeId!=0">
+		AND edu_college.COLLEGE_ID = #{collegeId}
+		</if>
+		
+	</where>
+	order by EDU_TEST_GRADE.TEST_GRADE DESC
+	</select>
+	<!-- 分页查询测验记录列表，开始 -->
+	<select id="queryTestGradeDtoListPage" parameterType="java.util.Map" resultMap="TestGradeDtoResult">
+	SELECT EDU_TEST_GRADE.TEST_GRADE_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_GRADE.TEST_GRADE_CREATETIME,
+	EDU_TEST_GRADE.TEST_GRADE_UPDATETIME,
+	EDU_TEST_GRADE.TEST_GRADE,
+	EDU_TEST_GRADE.TEST_COMMENT,
+	EDU_TEST.TEST_SCORE,
+	EDU_USER.USER_ID,
+	EDU_USER.USER_NAME,
+	EDU_USER.STUDENT_NUMBER,
+	EDU_TEST_SUBMIT.TEST_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME
+	FROM EDU_USER
+	left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID 
+	LEFT JOIN (
+	EDU_TEST LEFT JOIN EDU_TEST_SUBMIT ON (EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	    <if test="e.testId!=null and e.testId>0">
+		AND EDU_TEST.TEST_ID=#{e.testId}
+		</if>)
+	
+	LEFT JOIN EDU_TEST_GRADE ON (EDU_TEST_GRADE.TEST_SUBMIT_ID=EDU_TEST_SUBMIT.TEST_SUBMIT_ID)
+	
+	)ON EDU_TEST_SUBMIT.USER_ID=EDU_USER.USER_ID
+	<where>
+	    <if test="e.teacherId==null or e.teacherId==0">
+		AND EDU_USER.USER_ID = 0
+		</if>
+		<if test="e.teacherId!=null and e.teacherId==1">
+		</if>
+		 <if test="e.teacherId!=null and e.teacherId>1">
+			AND EDU_USER.USER_ID IN(SELECT EDU_USER_TEACHER.USER_ID FROM EDU_USER_TEACHER INNER JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_USER_TEACHER.TERM_ID 
+			WHERE EDU_USER_TEACHER.TEACHER_ID = #{e.teacherId}
+		    <if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		    AND edu_term.GRADE_ID = #{e.gradeTermId}
+		    </if>
+		    <if test="e.termId!=null and e.termId!=0">
+		    AND edu_term.TERM_ID = #{e.termId}
+		    </if>
+		    <if test="e.courseId!=null">
+		    AND EDU_USER_TEACHER.COURSE_ID = #{e.courseId}
+		    </if>)
+		  </if>
+		<if test="e.classId!=null and e.classId!=0">
+		AND edu_class.CLASS_ID = #{e.classId}
+		</if>
+		<if test="e.gradeId!=null and e.gradeId!=0">
+		AND edu_grade.GRADE_ID = #{e.gradeId}
+		</if>
+		<if test="e.majorId!=null and e.majorId!=0">
+	    AND edu_major.MAJOR_ID = #{e.majorId}
+		</if>
+		<if test="e.collegeId!=null and e.collegeId!=0">
+		AND edu_college.COLLEGE_ID = #{e.collegeId}
+		</if>
+	</where>
+	order by EDU_TEST_GRADE.TEST_GRADE DESC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestGradeDtoListPageCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_USER 
+	left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID 
+	LEFT JOIN (
+	EDU_TEST LEFT JOIN EDU_TEST_SUBMIT ON (EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	    <if test="e.testId!=null and e.testId>0">
+		AND EDU_TEST.TEST_ID=#{e.testId}
+		</if>)
+	
+	LEFT JOIN EDU_TEST_GRADE ON (EDU_TEST_GRADE.TEST_SUBMIT_ID=EDU_TEST_SUBMIT.TEST_SUBMIT_ID)
+	
+	)ON EDU_TEST_SUBMIT.USER_ID=EDU_USER.USER_ID         
+	<where>
+	    <if test="e.teacherId==null or e.teacherId==0">
+		AND EDU_USER.USER_ID = 0
+		</if>
+		<if test="e.teacherId!=null and e.teacherId==1">
+		</if>
+		<if test="e.teacherId!=null and e.teacherId>1">
+			AND EDU_USER.USER_ID IN(SELECT EDU_USER_TEACHER.USER_ID FROM EDU_USER_TEACHER INNER JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_USER_TEACHER.TERM_ID 
+			WHERE EDU_USER_TEACHER.TEACHER_ID = #{e.teacherId}
+		    <if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		    AND edu_term.GRADE_ID = #{e.gradeTermId}
+		    </if>
+		    <if test="e.termId!=null and e.termId!=0">
+		    AND edu_term.TERM_ID = #{e.termId}
+		    </if>
+		    <if test="e.courseId!=null">
+		    AND EDU_USER_TEACHER.COURSE_ID = #{e.courseId}
+		    </if>)
+		  </if>
+		<if test="e.classId!=null and e.classId!=0">
+		AND edu_class.CLASS_ID = #{e.classId}
+		</if>
+		<if test="e.gradeId!=null and e.gradeId!=0">
+		AND edu_grade.GRADE_ID = #{e.gradeId}
+		</if>
+		<if test="e.majorId!=null and e.majorId!=0">
+	    AND edu_major.MAJOR_ID = #{e.majorId}
+		</if>
+		<if test="e.collegeId!=null and e.collegeId!=0">
+		AND edu_college.COLLEGE_ID = #{e.collegeId}
+		</if>
+		<if test="e.status!=null and e.status==1">
+		AND EDU_TEST_GRADE.TEST_GRADE_ID IS NOT NULL
+		</if>
+		<if test="e.status!=null and e.status==2">
+		AND EDU_TEST_SUBMIT.TEST_SUBMIT_ID IS NOT NULL		
+		AND EDU_TEST_GRADE.TEST_GRADE_ID IS NULL
+		</if>
+		<if test="e.status!=null and e.status==3">
+		AND EDU_TEST_SUBMIT.TEST_SUBMIT_ID IS NULL
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 测验记录列表，结束-->
+	
+	<!-- 分页查询测验记录列表，开始 -->
+	<select id="queryTestGradeDtoListPage2" parameterType="java.util.Map" resultMap="TestGradeDtoResult">
+	SELECT EDU_TEST_GRADE.TEST_GRADE_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_GRADE.TEST_GRADE,
+	EDU_TEST_GRADE.TEST_COMMENT,
+	EDU_TEST.TEST_SCORE,
+	EDU_TEST_SUBMIT.TEST_ID,
+	EDU_TEST.TEST_TITLE,
+	EDU_COURSE.COURSE_NAME,
+	SYS_USER.USER_NAME AS TEACHER_NAME,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME
+	FROM EDU_TEST_SUBMIT 
+	LEFT JOIN EDU_TEST ON EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	LEFT JOIN EDU_TEST_GRADE ON EDU_TEST_GRADE.TEST_SUBMIT_ID=EDU_TEST_SUBMIT.TEST_SUBMIT_ID
+	LEFT JOIN EDU_COURSE ON EDU_COURSE.COURSE_ID = EDU_TEST.COURSE_ID
+	LEFT JOIN SYS_USER ON SYS_USER.USER_ID = EDU_TEST.TEACHER_ID
+	LEFT JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_TEST.TERM_ID
+	<where>
+	    <if test="e.userId!=null">
+		EDU_TEST_SUBMIT.USER_ID=#{e.userId}
+		</if>
+		<if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		AND edu_term.GRADE_ID = #{e.gradeTermId}
+		</if>
+		<if test="e.termId!=null and e.termId!=0">
+		AND edu_term.TERM_ID = #{e.termId}
+		</if>
+	</where>
+	WHERE EDU_TEST_SUBMIT.USER_ID=#{e}
+	order by EDU_TEST_SUBMIT.TEST_SUBMIT_TIME DESC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestGradeDtoListPage2Count" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_TEST_SUBMIT 
+	LEFT JOIN EDU_TEST ON EDU_TEST.TEST_ID=EDU_TEST_SUBMIT.TEST_ID
+	LEFT JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_TEST.TERM_ID
+	<where>
+	    <if test="e.userId!=null">
+		EDU_TEST_SUBMIT.USER_ID=#{e.userId}
+		</if>
+		<if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		AND edu_term.GRADE_ID = #{e.gradeTermId}
+		</if>
+		<if test="e.termId!=null and e.termId!=0">
+		AND edu_term.TERM_ID = #{e.termId}
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 测验记录列表，结束-->
+</mapper>

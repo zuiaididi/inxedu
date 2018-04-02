@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestQuestionMapper">
+	<sql id="edu_test_question_column">
+	EDU_TEST_QUESTION.QUESTION_ID,
+	EDU_TEST_QUESTION.QUESTION_CONTENT,
+	EDU_TEST_QUESTION.TEST_ID,
+	EDU_TEST_QUESTION.QUESTION_SCORE,
+	EDU_TEST_QUESTION.QUESTION_CREATE_TIME,
+	EDU_TEST_QUESTION.QUESTION_UPDATE_TIME,
+	EDU_TEST_QUESTION.QUESTION_SORT
+	</sql>
+	<sql id="edu_test_question_property">
+	#{questionId},
+	#{questionContent},
+	#{testId},
+	#{questionScore},
+	#{questionCreateTime},
+	#{questionUpdateTime},
+	#{questionSort}
+	</sql>
+	<resultMap type="TestQuestion" id="TestQuestionResult">
+	<result property="questionId" column="QUESTION_ID"/>
+	<result property="questionContent" column="QUESTION_CONTENT"/>
+	<result property="testId" column="TEST_ID"/>
+	<result property="questionScore" column="QUESTION_SCORE"/>
+	<result property="questionCreateTime" column="QUESTION_CREATE_TIME"/>
+	<result property="questionUpdateTime" column="QUESTION_UPDATE_TIME"/>
+	<result property="questionSort" column="QUESTION_SORT"/>
+	</resultMap>
+	
+	<resultMap type="TestQuestionDto" id="TestQuestionDtoResult">
+	<result property="questionId" column="QUESTION_ID"/>
+	<result property="questionContent" column="QUESTION_CONTENT"/>
+	<result property="testId" column="TEST_ID"/>
+	<result property="questionScore" column="QUESTION_SCORE"/>
+	<result property="questionCreateTime" column="QUESTION_CREATE_TIME"/>
+	<result property="questionUpdateTime" column="QUESTION_UPDATE_TIME"/>
+	<result property="questionSort" column="QUESTION_SORT"/>
+
+	<result property="questionSubmitId" column="QUESTION_SUBMIT_ID"/>
+	<result property="testSubmitId" column="TEST_SUBMIT_ID"/>
+	<result property="questionSubmitTime" column="QUESTION_SUBMIT_TIME"/>
+	<result property="questionSubmitAnswer" column="QUESTION_SUBMIT_ANSWER"/>
+	<result property="questionGradeId" column="QUESTION_GRADE_ID"/>
+	<result property="testGradeId" column="TEST_GRADE_ID"/>
+	<result property="questionCreateGradeTime" column="QUESTION_GRADE_CREATETIME"/>
+	<result property="questionUpdateGradeTime" column="QUESTION_GRADE_UPDATETIME"/>
+	<result property="questionGrade" column="QUESTION_GRADE"/>
+	<result property="questionComment" column="QUESTION_COMMENT"/>
+	<result property="studentNumber" column="STUDENT_NUMBER"/>
+	<result property="userName" column="USER_NAME"/>
+	</resultMap>
+	
+	<!-- 创建测验问题 -->
+	<insert id="createTestQuestion" parameterType="TestQuestion" useGeneratedKeys="true" keyColumn="QUESTION_ID" keyProperty="questionId">
+	INSERT INTO EDU_TEST_QUESTION(<include refid="edu_test_question_column"/>)
+	VALUE(<include refid="edu_test_question_property"/>)
+	</insert>
+	
+	<!-- 通过测验ID，查询问题记录 -->
+	<select id="queryTestQuestionByTestId" parameterType="int" resultMap="TestQuestionResult">
+	SELECT <include refid="edu_test_question_column"/> 
+	FROM EDU_TEST_QUESTION
+	WHERE EDU_TEST_QUESTION.TEST_ID=#{value}
+	order by EDU_TEST_QUESTION.QUESTION_SORT
+	</select>
+	
+	<!-- 通过问题ID，查询问题记录 -->
+	<select id="queryTestQuestionByQuestionId" parameterType="int" resultMap="TestQuestionResult">
+	SELECT <include refid="edu_test_question_column"/> 
+	FROM EDU_TEST_QUESTION
+	WHERE EDU_TEST_QUESTION.QUESTION_ID=#{value}
+	</select>
+	
+	<select id="queryTestQuestionDtoListBySubmit" parameterType="java.util.Map" resultMap="TestQuestionDtoResult">
+	SELECT <include refid="edu_test_question_column"/>,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID,
+	EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ANSWER,
+	EDU_TEST_QUESTIONGRADE.QUESTION_GRADE_ID,
+	EDU_TEST_QUESTIONGRADE.TEST_GRADE_ID,
+	EDU_TEST_QUESTIONGRADE.QUESTION_GRADE_CREATETIME,
+	EDU_TEST_QUESTIONGRADE.QUESTION_GRADE_UPDATETIME,
+	EDU_TEST_QUESTIONGRADE.QUESTION_GRADE,
+	EDU_TEST_QUESTIONGRADE.QUESTION_COMMENT,
+	EDU_USER.STUDENT_NUMBER,
+	EDU_USER.USER_NAME
+	FROM EDU_TEST_QUESTION
+	LEFT JOIN EDU_TEST_QUESTIONSUBMIT ON (EDU_TEST_QUESTIONSUBMIT.QUESTION_ID = EDU_TEST_QUESTION.QUESTION_ID AND EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=#{testSubmitId})
+	LEFT JOIN EDU_TEST_QUESTIONGRADE ON EDU_TEST_QUESTIONGRADE.QUESTION_SUBMIT_ID = EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID 
+	LEFT JOIN EDU_TEST_SUBMIT ON EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=EDU_TEST_SUBMIT.TEST_SUBMIT_ID
+	LEFT JOIN EDU_USER ON EDU_USER.USER_ID=EDU_TEST_SUBMIT.USER_ID
+	WHERE EDU_TEST_QUESTION.TEST_ID=#{testId}
+	order by EDU_TEST_QUESTION.QUESTION_SORT
+	</select>
+	
+	
+	<!-- 删除问题 -->
+	<delete id="deleteTestQuestion" parameterType="int">
+	DELETE FROM EDU_TEST_QUESTION WHERE EDU_TEST_QUESTION.QUESTION_ID=#{questionId}
+	</delete>
+	
+	<!-- 修改问题 -->
+	<update id="updateTestQuestion" parameterType="TestQuestion">
+	UPDATE EDU_TEST_QUESTION SET 
+	EDU_TEST_QUESTION.QUESTION_CONTENT=#{questionContent},
+	EDU_TEST_QUESTION.QUESTION_SCORE=#{questionScore},
+	EDU_TEST_QUESTION.QUESTION_UPDATE_TIME=#{questionUpdateTime},
+	EDU_TEST_QUESTION.QUESTION_SORT=#{questionSort}
+	WHERE EDU_TEST_QUESTION.QUESTION_ID=#{questionId}
+	</update>
+	
+	<!-- 分页查询问题列表，开始 -->
+	<select id="queryTestQuestionListPage" parameterType="java.util.Map" resultMap="TestQuestionResult">
+	SELECT <include refid="edu_test_question_column"/>  
+	FROM EDU_TEST_QUESTION
+	<where>
+		<if test="e.testId!=null and e.testId>0">
+		EDU_TEST_QUESTION.TEST_ID=#{e.testId}
+		</if>
+	</where>
+	order by EDU_TEST_QUESTION.TEST_ID ASC,EDU_TEST_QUESTION.QUESTION_SORT ASC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestQuestionListPageCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_TEST_QUESTION 
+	<where>
+		<if test="e.testId!=null and e.testId>0">
+		EDU_TEST_QUESTION.TEST_ID=#{e.testId}
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 问题列表，结束-->
+	
+</mapper>

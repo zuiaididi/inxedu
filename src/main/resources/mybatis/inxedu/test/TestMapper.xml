@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestMapper">
+	<sql id="edu_test_column">
+	EDU_TEST.TEST_ID,
+	EDU_TEST.TEST_TITLE,
+	EDU_TEST.TEST_SCORE,
+	EDU_TEST.TEST_CREATE_TIME,
+	EDU_TEST.TEST_UPDATE_TIME,
+	EDU_TEST.TEST_START_TIME,
+	EDU_TEST.TEST_END_TIME,
+	EDU_TEST.TEACHER_ID,
+	EDU_TEST.COURSE_ID,
+	EDU_TEST.TEST_SORT,
+	EDU_TEST.TERM_ID
+	</sql>
+	<sql id="edu_test_property">
+	#{testId},
+	#{testTitle},
+	#{testScore},
+	#{testCreateTime},
+	#{testUpdateTime},
+	#{testStartTime},
+	#{testEndTime},
+	#{teacherId},
+	#{courseId},
+	#{testSort},
+	#{termId}
+	</sql>
+	<resultMap type="Test" id="TestResult">
+	<result property="testId" column="TEST_ID"/>
+	<result property="testTitle" column="TEST_TITLE"/>
+	<result property="testScore" column="TEST_SCORE"/>
+	<result property="testCreateTime" column="TEST_CREATE_TIME"/>
+	<result property="testUpdateTime" column="TEST_UPDATE_TIME"/>
+	<result property="testStartTime" column="TEST_START_TIME"/>
+	<result property="testEndTime" column="TEST_END_TIME"/>
+	<result property="teacherId" column="TEACHER_ID"/>
+	<result property="courseId" column="COURSE_ID"/>
+	<result property="testSort" column="TEST_SORT"/>
+	<result property="courseName" column="COURSE_NAME"/>
+	<result property="teacherName" column="USER_NAME"/>
+	<result property="termId" column="TERM_ID"/>
+	<result property="termName" column="TERM_NAME"/>
+	<result property="gradeName" column="GRADE_NAME"/>
+	</resultMap>
+	
+	<!-- 创建测验 -->
+	<insert id="createTest" parameterType="Test" useGeneratedKeys="true" keyColumn="TEST_ID" keyProperty="testId">
+	INSERT INTO EDU_TEST(<include refid="edu_test_column"/>)
+	VALUE(<include refid="edu_test_property"/>)
+	</insert>
+	
+	<!-- 通过测验ID，查询测验记录 -->
+	<select id="queryTestByTestId" parameterType="int" resultMap="TestResult">
+	SELECT <include refid="edu_test_column"/>
+	FROM EDU_TEST
+	WHERE EDU_TEST.TEST_ID=#{value}
+	</select>
+	
+	<!-- 通过课程ID，查询测验记录 -->
+	<select id="queryTestByCourseId" parameterType="int" resultMap="TestResult">
+	SELECT <include refid="edu_test_column"/>
+	FROM EDU_TEST
+	WHERE EDU_TEST.COURSE_ID=#{value}
+	</select>
+	
+	<!-- 通过老师ID，查询测验记录 -->
+	<select id="queryTestByTeacherId" parameterType="int" resultMap="TestResult">
+	SELECT <include refid="edu_test_column"/>
+	FROM EDU_TEST
+	WHERE EDU_TEST.TEACHER_ID=#{value}
+	</select>
+	
+	<!-- 删除测验 -->
+	<delete id="deleteTest" parameterType="int">
+	DELETE FROM EDU_TEST WHERE EDU_TEST.TEST_ID=#{testId}
+	</delete>
+	
+	<!-- 修改测验 -->
+	<update id="updateTest" parameterType="Test">
+	UPDATE EDU_TEST SET 
+	EDU_TEST.TEST_TITLE=#{testTitle},
+	EDU_TEST.TEST_SCORE=#{testScore},
+	EDU_TEST.TEST_UPDATE_TIME=#{testUpdateTime},
+	EDU_TEST.TEST_START_TIME=#{testStartTime},
+	EDU_TEST.TEST_END_TIME=#{testEndTime},
+	EDU_TEST.TEST_SORT=#{testSort}
+	WHERE EDU_TEST.TEST_ID=#{testId}
+	</update>
+	
+	<!-- 分页查询测验列表，开始 -->
+	<select id="queryTestListPage" parameterType="java.util.Map" resultMap="TestResult">
+	SELECT <include refid="edu_test_column"/> ,
+	EDU_COURSE.COURSE_NAME,
+	SYS_USER.USER_NAME,
+	EDU_TERM.TERM_NAME,
+	EDU_GRADE.GRADE_NAME
+	FROM EDU_TEST
+	LEFT JOIN EDU_COURSE ON EDU_COURSE.COURSE_ID = EDU_TEST.COURSE_ID
+	LEFT JOIN SYS_USER ON SYS_USER.USER_ID = EDU_TEST.TEACHER_ID
+	LEFT JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_TEST.TERM_ID
+	LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_TERM.GRADE_ID
+	<where>
+	    <if test="e.testId!=null and e.testId>0">
+		EDU_TEST.TEST_ID=#{e.testId}
+		</if>
+		<if test="e.courseId==null">
+		AND EDU_TEST.COURSE_ID=0
+		</if>
+		<if test="e.courseId!=null and e.courseId!=-1">
+		AND EDU_TEST.COURSE_ID=#{e.courseId}
+		</if>
+		<if test="e.teacherId==null">
+		AND EDU_TEST.TEACHER_ID = 0
+		</if>
+		<if test="e.teacherId!=null and e.teacherId!=-1">
+		AND EDU_TEST.TEACHER_ID=#{e.teacherId}
+		</if>
+		<if test="e.termId!=null and e.termId>0">
+		AND EDU_TEST.TERM_ID=#{e.termId}
+		</if>
+		<if test="e.userId!=null and e.userId>0">
+		AND (EDU_TEST.TEACHER_ID = 1 OR (EDU_TEST.TEACHER_ID,EDU_TEST.TERM_ID,EDU_TEST.COURSE_ID) IN
+		(SELECT EDU_USER_TEACHER.TEACHER_ID,EDU_USER_TEACHER.TERM_ID,EDU_USER_TEACHER.COURSE_ID FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID = #{e.userId}))
+		</if>
+		<if test="e.status==1">
+			AND EDU_TEST.TEST_START_TIME > #{e.nowTime}
+		</if>
+		<if test="e.status==2">
+			AND <![CDATA[EDU_TEST.TEST_START_TIME <= #{e.nowTime}]]>
+			AND EDU_TEST.TEST_END_TIME >= #{e.nowTime}
+		</if>
+		<if test="e.status==3">
+			AND <![CDATA[EDU_TEST.TEST_END_TIME < #{e.nowTime}]]>
+		</if>
+	</where>
+	order by EDU_TEST.TEST_START_TIME DESC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestListPageCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_TEST 
+	<where>
+		<if test="e.testId!=null and e.testId>0">
+		EDU_TEST.TEST_ID=#{e.testId}
+		</if>
+		<if test="e.courseId!=null and e.courseId>0">
+		AND EDU_TEST.COURSE_ID=#{e.courseId}
+		</if>
+		<if test="e.teacherId!=null and e.teacherId>1">
+		AND EDU_TEST.TEACHER_ID=#{e.teacherId}
+		</if>
+		<if test="e.termId!=null and e.termId>0">
+		AND EDU_TEST.TERM_ID=#{e.termId}
+		</if>
+		<if test="e.userId!=null and e.userId>0">
+		AND (EDU_TEST.TEACHER_ID = 1 OR (EDU_TEST.TEACHER_ID,EDU_TEST.TERM_ID,EDU_TEST.COURSE_ID) IN
+		(SELECT EDU_USER_TEACHER.TEACHER_ID,EDU_USER_TEACHER.TERM_ID,EDU_USER_TEACHER.COURSE_ID FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID = #{e.userId}))
+		</if>
+		<if test="e.status==1">
+			AND EDU_TEST.TEST_START_TIME > #{e.nowTime}
+		</if>
+		<if test="e.status==2">
+			AND <![CDATA[EDU_TEST.TEST_START_TIME <= #{e.nowTime}]]>
+			AND EDU_TEST.TEST_END_TIME >= #{e.nowTime}
+		</if>
+		<if test="e.status==3">
+			AND <![CDATA[EDU_TEST.TEST_END_TIME < #{e.nowTime}]]>
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 测验列表，结束-->
+	
+</mapper>

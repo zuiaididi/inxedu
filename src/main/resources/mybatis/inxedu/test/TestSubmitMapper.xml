@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestSubmitMapper">
+	<sql id="edu_test_submit_column">
+	EDU_TEST_SUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_SUBMIT.USER_ID,
+	EDU_TEST_SUBMIT.TEST_ID,
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME
+	</sql>
+	<sql id="edu_test_submit_property">
+	#{testSubmitId},
+	#{userId},
+	#{testId},
+	#{testSubmitTime}
+	</sql>
+	<resultMap type="TestSubmit" id="TestSubmitResult">
+	<result property="testSubmitId" column="TEST_SUBMIT_ID"/>
+	<result property="userId" column="USER_ID"/>
+	<result property="testId" column="TEST_ID"/>
+	<result property="testSubmitTime" column="TEST_SUBMIT_TIME"/>
+	</resultMap>
+	
+	<!-- 创建测验提交记录 -->
+	<insert id="createTestSubmit" parameterType="TestSubmit" useGeneratedKeys="true" keyColumn="TEST_SUBMIT_ID" keyProperty="testSubmitId">
+	INSERT INTO EDU_TEST_SUBMIT(<include refid="edu_test_submit_column"/>)
+	VALUE(<include refid="edu_test_submit_property"/>)
+	</insert>
+	
+	<!-- 通过提交ID，查询提交记录 -->
+	<select id="queryTestSubmitBySubmitId" parameterType="int" resultMap="TestSubmitResult">
+	SELECT <include refid="edu_test_submit_column"/>
+	FROM EDU_TEST_SUBMIT
+	WHERE EDU_TEST_SUBMIT.TEST_SUBMIT_ID=#{value}
+	</select>
+	
+	<!-- 通过学员ID，查询提交记录 -->
+	<select id="queryTestSubmitByUserId" parameterType="int" resultMap="TestSubmitResult">
+	SELECT <include refid="edu_test_submit_column"/>
+	FROM EDU_TEST_SUBMIT
+	WHERE EDU_TEST_SUBMIT.USER_ID=#{value}
+	</select>
+	
+	<!-- 通过测验ID，查询提交记录 -->
+	<select id="queryTestSubmitByTestId" parameterType="int" resultMap="TestSubmitResult">
+	SELECT <include refid="edu_test_submit_column"/>
+	FROM EDU_TEST_SUBMIT
+	WHERE EDU_TEST_SUBMIT.TEST_ID=#{value}
+	</select>
+	
+	<!-- 通过测验ID和学员ID，查询提交记录 -->
+	<select id="queryTestSubmitByTestIdAndUserId" parameterType="TestSubmit" resultMap="TestSubmitResult">
+	SELECT <include refid="edu_test_submit_column"/>
+	FROM EDU_TEST_SUBMIT
+	WHERE EDU_TEST_SUBMIT.TEST_ID=#{testId} AND EDU_TEST_SUBMIT.USER_ID=#{userId}
+	order by EDU_TEST_SUBMIT.TEST_SUBMIT_TIME DESC
+	</select>
+	
+	<!-- 修改测验提交记录-->
+	<update id="updateTestSubmit" parameterType="TestSubmit">
+	UPDATE EDU_TEST_SUBMIT SET 
+	EDU_TEST_SUBMIT.TEST_SUBMIT_TIME=#{testSubmitTime}
+	WHERE EDU_TEST_SUBMIT.TEST_SUBMIT_ID=#{testSubmitId}
+	</update>
+	
+	<!-- 删除提交记录 -->
+	<delete id="deleteTestSubmit" parameterType="int">
+	DELETE FROM EDU_TEST_SUBMIT WHERE EDU_TEST_SUBMIT.TEST_SUBMIT_ID=#{testSubmitId}
+	</delete>
+	
+	<!-- 分页查询测验提交列表，开始 -->
+	<select id="queryTestSubmitListPage" parameterType="java.util.Map" resultMap="TestSubmitResult">
+	SELECT <include refid="edu_test_submit_column"/>  
+	FROM EDU_TEST_SUBMIT
+	<where>
+		<if test="e.userId!=null and e.userId>0">
+		EDU_TEST_SUBMIT.USER_ID=#{e.userId}
+		</if>
+		<if test="e.testId!=null and e.testId>0">
+		EDU_TEST_SUBMIT.TEST_ID=#{e.testId}
+		</if>
+	</where>
+	order by EDU_TEST_SUBMIT.TEST_SUBMIT_TIME DESC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestSubmitListPageCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_TEST_SUBMIT 
+	<where>
+		<if test="e.userId!=null and e.userId>0">
+		EDU_TEST_SUBMIT.USER_ID=#{e.userId}
+		</if>
+		<if test="e.testId!=null and e.testId>0">
+		EDU_TEST_SUBMIT.TEST_ID=#{e.testId}
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 测验提交列表，结束-->
+	
+</mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TermMapper">
+	<sql id="edu_term_column">
+	EDU_TERM.TERM_ID,
+	EDU_TERM.TERM_NAME,
+	EDU_TERM.GRADE_ID,
+	EDU_TERM.TERM_START_TIME,
+	EDU_TERM.TERM_END_TIME
+	</sql>
+	<sql id="edu_term_property">
+	#{termId},
+	#{termName},
+	#{gradeId},
+	#{termStartTime},
+	#{termEndTime}
+	</sql>
+	
+	<resultMap type="Term" id="TermResult">
+	<result property="termId" column="TERM_ID"/>
+	<result property="termName" column="TERM_NAME"/>
+	<result property="gradeId" column="GRADE_ID"/>
+	<result property="termStartTime" column="TERM_START_TIME"/>
+	<result property="termEndTime" column="TERM_END_TIME"/>
+	
+	<result property="gradeName" column="GRADE_NAME"/>
+	</resultMap>
+	
+	<!-- 创建学期 -->
+	<insert id="createTerm" parameterType="Term" useGeneratedKeys="true" keyColumn="TERM_ID" keyProperty="termId">
+	INSERT INTO EDU_TERM(<include refid="edu_term_column"/>)
+	VALUE(<include refid="edu_term_property"/>)
+	</insert>
+	
+	<!-- 通过学期ID，查询学期记录 -->
+	<select id="queryTermById" parameterType="int" resultMap="TermResult">
+	SELECT <include refid="edu_term_column"/>,
+	EDU_GRADE.GRADE_NAME
+	FROM EDU_TERM
+	LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_TERM.GRADE_ID 
+    WHERE EDU_TERM.TERM_ID=#{value}
+	</select>
+	
+	<!-- 通过学年ID，查询学期记录 -->
+	<select id="queryTerms" parameterType="int" resultMap="TermResult">
+	SELECT <include refid="edu_term_column"/> FROM EDU_TERM WHERE EDU_TERM.GRADE_ID=#{value}
+	ORDER BY EDU_TERM.TERM_START_TIME ASC
+	</select>
+	
+	<select id="queryTermsCount" parameterType="int" resultType="int">
+	SELECT COUNT(1) FROM EDU_TERM WHERE EDU_TERM.GRADE_ID=#{value}
+	</select>
+	
+	<!-- 判断有无重复学期 -->
+	<select id="checkTermsCount" parameterType="Term" resultType="int">
+	SELECT COUNT(1) FROM EDU_TERM WHERE EDU_TERM.TERM_END_TIME >= #{termStartTime}
+	and <![CDATA[EDU_TERM.TERM_START_TIME <= #{termEndTime}]]>
+	</select>
+	<!-- 判断当前学期 -->
+	<select id="checkTerm" parameterType="Term" resultMap="TermResult">
+	SELECT <include refid="edu_term_column"/> FROM EDU_TERM 
+	WHERE EDU_TERM.TERM_END_TIME >= #{termEndTime}
+	and <![CDATA[EDU_TERM.TERM_START_TIME <= #{termStartTime}]]>
+	</select>
+	
+	<!-- 修改学期 -->
+	<update id="updateTerm" parameterType="Term">
+	UPDATE EDU_TERM SET 
+	EDU_TERM.TERM_NAME=#{termName},
+	EDU_TERM.TERM_START_TIME=#{termStartTime},
+	EDU_TERM.TERM_END_TIME=#{termEndTime}
+	WHERE EDU_TERM.TERM_ID=#{termId}
+	</update>
+	
+	<!-- 删除学期 -->
+	<delete id="deleteTerm" parameterType="int">
+	DELETE FROM EDU_TERM WHERE EDU_TERM.TERM_ID=#{termId}
+	</delete>
+	
+	<select id="getTermListPage" resultMap="TermResult" parameterType="java.util.HashMap">
+		select
+		<include refid="edu_term_column" />,
+	EDU_GRADE.GRADE_NAME
+	FROM EDU_TERM
+	LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_TERM.GRADE_ID
+		<where>
+			<if test="e.termId !=null and e.termId > 0 ">
+				AND EDU_TERM.TERM_ID = #{e.termId}
+			</if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+		</where>
+		ORDER BY EDU_TERM.TERM_START_TIME ASC
+		<include refid="publicMapper.pageEnd" />
+	</select>
+	<select id="getTermListPageCount" resultType="int" parameterType="java.util.HashMap">
+		select
+		count(1)
+		from edu_term
+		LEFT JOIN EDU_GRADE ON EDU_GRADE.GRADE_ID = EDU_TERM.GRADE_ID
+		<where>
+			<if test="e.termId !=null and e.termId > 0 ">
+				AND EDU_TERM.TERM_ID = #{e.termId}
+			</if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+		</where>
+	</select>
+
+</mapper>

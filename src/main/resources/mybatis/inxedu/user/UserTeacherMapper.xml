@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserTeacherMapper">
+	<sql id="edu_user_teacher_column">
+	EDU_USER_TEACHER.ID,
+	EDU_USER_TEACHER.USER_ID,
+	EDU_USER_TEACHER.TEACHER_ID,
+	EDU_USER_TEACHER.TERM_ID,
+	EDU_USER_TEACHER.COURSE_ID
+	</sql>
+	<sql id="edu_user_teacher_property">
+	#{id},
+	#{userId},
+	#{teacherId},
+	#{termId},
+	#{courseId}
+	</sql>
+	<resultMap type="UserTeacher" id="UserTeacherResult">
+	<result property="id" column="ID"/>
+	<result property="userId" column="USER_ID"/>
+	<result property="teacherId" column="TEACHER_ID"/>
+	<result property="termId" column="TERM_ID"/>
+	<result property="courseId" column="COURSE_ID"/>
+	</resultMap>
+	
+	<resultMap type="UserTeacherDto" id="UserTeacherDtoResult" extends="UserTeacherResult">
+	<result property="teacherName" column="TEACHER_NAME"/>
+	<result property="courseName" column="COURSE_NAME"/>
+	<result property="termName" column="TERM_NAME"/>
+	<result property="gradeName" column="GRADE_NAME"/>
+	</resultMap>
+	
+	<!-- 添加 -->
+	<insert id="createUserTeacher" parameterType="UserTeacher" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+	INSERT INTO EDU_USER_TEACHER(<include refid="edu_user_teacher_column"/>)
+	VALUE(<include refid="edu_user_teacher_property"/>)
+	</insert>
+	
+	<!-- 通过用户ID，查询老师ID -->
+	<select id="queryUserTeacerIds" parameterType="int" resultType="int">
+	SELECT DISTINCT(EDU_USER_TEACHER.TEACHER_ID)
+	FROM edu_user_teacher
+	WHERE EDU_USER_TEACHER.USER_ID=#{value}
+	</select>
+	
+	<!-- 查询是否存在 -->
+	<select id="checkUserTeacher" parameterType="UserTeacher" resultType="int">
+	SELECT COUNT(1) FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID=#{userId}
+	AND EDU_USER_TEACHER.TEACHER_ID=#{teacherId} AND EDU_USER_TEACHER.TERM_ID=#{termId}
+	</select>
+	<select id="checkUserTeacher2" parameterType="UserTeacher" resultType="int">
+	SELECT COUNT(1) FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID=#{userId}
+	AND EDU_USER_TEACHER.TEACHER_ID=#{teacherId} AND EDU_USER_TEACHER.TERM_ID=#{termId}
+	AND EDU_USER_TEACHER.COURSE_ID=#{courseId}
+	</select>
+	
+	<delete id="deleteByUserId" parameterType="int">
+	DELETE FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID=#{userId}
+	</delete>
+	
+	<delete id="deleteByTeacherId" parameterType="int">
+	DELETE FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.TEACHER_ID=#{teacherId}
+	</delete>
+	
+	<delete id="deleteUserTeacher" parameterType="UserTeacher">
+	DELETE FROM EDU_USER_TEACHER WHERE EDU_USER_TEACHER.USER_ID=#{userId} 
+	AND EDU_USER_TEACHER.TEACHER_ID=#{teacherId}
+	</delete>
+	
+	<!-- 通过用户ID，查询选课信息 -->
+	<select id="queryUserTeacher" parameterType="java.util.Map" resultMap="UserTeacherDtoResult">
+	SELECT <include refid="edu_user_teacher_column"/>,
+	edu_term.TERM_NAME,
+	edu_grade.GRADE_NAME,
+	edu_course.COURSE_NAME,
+	sys_user.USER_NAME AS TEACHER_NAME
+	FROM edu_user_teacher
+	LEFT JOIN edu_term ON edu_term.TERM_ID = edu_user_teacher.TERM_ID
+	LEFT JOIN sys_user ON sys_user.USER_ID = edu_user_teacher.TEACHER_ID
+	LEFT JOIN edu_course ON edu_course.COURSE_ID = edu_user_teacher.COURSE_ID
+	LEFT JOIN edu_grade ON edu_grade.GRADE_ID = edu_term.GRADE_ID
+	<where>
+	<if test="e.userId!=null">
+		EDU_USER_TEACHER.USER_ID=#{e.userId}
+	</if>
+	<if test="e.status!=null and e.status==1 and e.termId!=null and e.termId!=0">
+		AND EDU_USER_TEACHER.TERM_ID=#{e.termId}
+	</if>
+	<if test="e.status!=null and e.status==0 and e.termId!=null and e.termId!=0">
+		AND EDU_USER_TEACHER.TERM_ID!=#{e.termId}
+	</if>
+	</where>
+	order by edu_user_teacher.TERM_ID DESC,edu_user_teacher.TEACHER_ID ASC,edu_user_teacher.COURSE_ID ASC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	
+	<select id="queryUserTeacherCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1)
+	FROM edu_user_teacher
+	<where>
+	<if test="e.userId!=null">
+		EDU_USER_TEACHER.USER_ID=#{e.userId}
+	</if>
+	<if test="status!=null and status==1 and termId!=null and termId!=0">
+		AND EDU_USER_TEACHER.TERM_ID=#{e.termId}
+	</if>
+	<if test="e.status!=null and e.status==0 and e.termId!=null and e.termId!=0">
+		AND EDU_USER_TEACHER.TERM_ID!=#{e.termId}
+	</if>
+	</where>
+	</select>
+	
+</mapper>

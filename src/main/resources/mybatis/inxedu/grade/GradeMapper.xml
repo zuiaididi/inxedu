@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="GradeMapper">
+	<sql id="edu_grade_column">
+	EDU_GRADE.GRADE_ID,
+	EDU_GRADE.GRADE_NAME
+	</sql>
+	<sql id="edu_grade_property">
+	#{gradeId},
+	#{gradeName}
+	</sql>
+	<resultMap type="Grade" id="GradeResult">
+	<result property="gradeId" column="GRADE_ID"/>
+	<result property="gradeName" column="GRADE_NAME"/>
+	</resultMap>
+	
+	
+	<!-- 创建年级 -->
+	<insert id="createGrade" parameterType="Grade" useGeneratedKeys="true" keyColumn="GRADE_ID" keyProperty="gradeId">
+	INSERT INTO EDU_GRADE(<include refid="edu_grade_column"/>)
+	VALUE(<include refid="edu_grade_property"/>)
+	</insert>
+	
+	<!-- 通过年级ID，查询年级记录 -->
+	<select id="queryGradeById" parameterType="int" resultMap="GradeResult">
+	SELECT <include refid="edu_grade_column"/> FROM EDU_GRADE WHERE EDU_GRADE.GRADE_ID=#{value}
+	</select>
+	
+	
+	<!-- 查询年级记录 -->
+	<select id="queryGrades" resultMap="GradeResult">
+	SELECT <include refid="edu_grade_column"/> FROM EDU_GRADE
+	ORDER BY EDU_GRADE.GRADE_NAME ASC
+	</select>
+	
+	<select id="queryGradesCount" parameterType="int" resultType="int">
+	SELECT COUNT(1) FROM EDU_GRADE
+	</select>
+	
+	<!-- 修改年级名称 -->
+	<update id="updateGrade" parameterType="Grade">
+	UPDATE EDU_GRADE SET 
+	EDU_GRADE.GRADE_NAME=#{gradeName}
+	WHERE EDU_GRADE.GRADE_ID=#{gradeId}
+	</update>
+	
+	<!-- 删除年级 -->
+	<delete id="deleteGrade" parameterType="int">
+	DELETE FROM EDU_GRADE WHERE EDU_GRADE.GRADE_ID=#{gradeId}
+	</delete>
+	
+	<select id="getGradeListPage" resultMap="GradeResult" parameterType="java.util.HashMap">
+		select
+		<include refid="edu_grade_column" />
+	FROM EDU_GRADE
+		<where>
+		    <if test="e.keyWord!=null and e.keyWord!=''">
+		    AND EDU_GRADE.GRADE_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    </if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+		</where>
+		order by EDU_GRADE.GRADE_NAME ASC
+		<include refid="publicMapper.pageEnd" />
+	</select>
+	<select id="getGradeListPageCount" resultType="int" parameterType="java.util.HashMap">
+		select
+		count(1)
+		from edu_grade
+		<where>
+			<if test="e.keyWord!=null and e.keyWord!=''">
+		    AND EDU_GRADE.GRADE_NAME LIKE CONCAT('%',#{e.keyWord},'%')
+		    </if>
+			<if test="e.gradeId !=null and e.gradeId > 0 ">
+				AND EDU_GRADE.GRADE_ID = #{e.gradeId}
+			</if>
+		</where>
+	</select>
+
+</mapper>

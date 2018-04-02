@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CourseStudyhistoryMapper">
+
+	<resultMap id="CourseStudyhistoryResult" type="CourseStudyhistory">
+		<result property="id" column="ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="courseId" column="COURSE_ID" />
+		<result property="kpointId" column="KPOINT_ID" />
+		<result property="playercount" column="PLAYERCOUNT" />
+		<result property="courseName" column="COURSE_NAME" />
+		<result property="kpointName" column="NAME" />
+		<result property="updateTime" column="UPDATE_TIME" />
+		
+		<result property="userShowName" column="userShowName" />
+		<result property="userName" column="USER_NAME" />
+		<result property="studentNumber" column="STUDENT_NUMBER" />
+		<result property="userEmail" column="userEmail" />
+		<result property="userImg" column="userImg" />
+	</resultMap>
+
+
+	<resultMap type="CourseStudyhistory" id="AllCourseStudyhistoryResult"
+		extends="CourseStudyhistoryResult">
+		<result property="teacherName" column="name" />
+		<result property="logo" column="logo" />
+	</resultMap>
+	
+	<resultMap type="CourseStudyHistoryDto" id="CourseStudyHistoryDtoResult">
+	    <result property="id" column="ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="courseId" column="COURSE_ID" />
+		<result property="kpointId" column="KPOINT_ID" />
+		<result property="courseName" column="COURSE_NAME" />
+		<result property="kpointName" column="NAME" />
+		<result property="updateTime" column="UPDATE_TIME" />
+		<result property="logo" column="LOGO" />
+		<result property="teacherName" column="TEACHER_NAME" />
+		<result property="videoUrl" column="VIDEO_URL" />
+		<result property="parentId" column="PARENT_ID" />
+		<result property="parentName" column="PARENT_NAME" />
+		<result property="email" column="EMAIL" />
+		<result property="mobile" column="MOBILE" />
+		<result property="studentNumber" column="STUDENT_NUMBER" />
+		<result property="userName" column="USER_NAME" />
+		<result property="collegeName" column="COLLEGE_NAME" />
+		<result property="majorName" column="MAJOR_NAME" />
+		<result property="gradeName" column="GRADE_NAME" />
+		<result property="className" column="CLASS_NAME" />
+		<result property="classId" column="CLASS_ID" />
+		<result property="sysName" column="SYS_NAME" />
+	</resultMap>
+	<sql id="edu_course_studyhistory_columns">
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.USER_ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		edu_course_studyhistory.PLAYERCOUNT,
+		edu_course_studyhistory.UPDATE_TIME
+	</sql>
+
+	<sql id="edu_course_studyhistory_properties">
+		#{id},
+		#{userId},
+		#{courseId},
+		#{kpointId},
+		#{playercount},
+		#{updateTime}
+	</sql>
+
+	<insert id="createCourseStudyhistory" parameterType="CourseStudyhistory"
+		keyColumn="ID" keyProperty="id" useGeneratedKeys="true">
+		insert INTO edu_course_studyhistory (
+		<include refid="edu_course_studyhistory_columns" />
+		) VALUES (
+		<include refid="edu_course_studyhistory_properties" />
+		)
+	</insert>
+
+	<delete id="deleteCourseStudyhistoryById" parameterType="Long">
+		delete
+		from edu_course_studyhistory
+		where
+		ID = #{value}
+	</delete>
+	
+	<delete id="deleteCourseStudyhistoryByIds" parameterType="String">
+	    delete
+		from edu_course_studyhistory
+		where ID  IN  (${value})
+	</delete>
+	
+	<delete id="deleteCourseStudyhistoryByUserId" parameterType="Long">
+		delete
+		from edu_course_studyhistory
+		where
+		USER_ID = #{value}
+	</delete>
+	
+	<delete id="deleteCourseStudyhistoryByCourseId" parameterType="Long">
+		delete
+		from edu_course_studyhistory
+		where
+		COURSE_ID = #{value}
+	</delete>
+	
+	<delete id="deleteCourseStudyhistoryByKpointId" parameterType="Long">
+		delete
+		from edu_course_studyhistory
+		where
+		KPOINT_ID = #{value}
+	</delete>
+
+	<update id="updateCourseStudyhistory" parameterType="CourseStudyhistory">
+		update
+		edu_course_studyhistory SET
+		USER_ID = #{userId},
+		COURSE_ID =
+		#{courseId},
+		KPOINT_ID = #{kpointId},
+		PLAYERCOUNT = #{playercount},
+		UPDATE_TIME = #{updateTime}
+		where
+		ID = #{id}
+	</update>
+
+	<select id="getCourseStudyhistoryList" resultMap="CourseStudyhistoryResult"
+		parameterType="CourseStudyhistory">
+		select
+		<include refid="edu_course_studyhistory_columns" />,
+		edu_user.USER_NAME,
+		edu_user.STUDENT_NUMBER,
+		edu_user.PIC_IMG AS picImg,
+		IFNULL(edu_User.SHOW_NAME,edu_user.EMAIL) AS showName,
+		edu_course.COURSE_NAME,
+		edu_course_kpoint.NAME
+		from edu_course_studyhistory
+		inner join edu_course on edu_course.COURSE_ID = edu_course_studyhistory.COURSE_ID
+		inner join edu_course_kpoint on edu_course_kpoint.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		inner join edu_user on edu_user.USER_ID = edu_course_studyhistory.USER_ID
+		<where>
+			edu_course_kpoint.KPOINT_ID is not null
+			and edu_course_kpoint.KPOINT_TYPE=1
+			<if test="userId!=null and userId>0">
+				and edu_course_studyhistory.USER_ID = #{userId}
+			</if>
+			<if test="courseId!=null and courseId>0">
+				and edu_course_studyhistory.COURSE_ID = #{courseId}
+			</if>
+			<if test="kpointId!=null and kpointId>0">
+				and edu_course_studyhistory.KPOINT_ID = #{kpointId}
+			</if>
+		</where>
+		<if test="queryLimit>0">
+			ORDER by edu_course_studyhistory.UPDATE_TIME DESC
+			limit #{queryLimit}
+		</if>
+	</select>
+
+	<!-- 查看 课程下的学习记录 -->
+	<select id="getCourseStudyhistoryListByCouId" resultMap="CourseStudyhistoryResult" parameterType="long">
+		SELECT A.USER_ID,edu_user.USER_NAME,edu_user.STUDENT_NUMBER,A.UPDATE_TIME,edu_user.SHOW_NAME as userShowName,edu_user.EMAIL as userEmail,edu_user.PIC_IMG as userImg FROM (
+        select USER_ID,max(UPDATE_TIME) as UPDATE_TIME
+        from edu_course_studyhistory b 
+        where b.COURSE_ID = #{value} group by USER_ID )A 
+        left join edu_user on edu_user.USER_ID = A.USER_ID
+        ORDER BY A.UPDATE_TIME DESC limit 8
+	</select>
+	
+	<!-- 查看 课程下的学习记录 总人数-->
+	<select id="getCourseStudyhistoryCountByCouId" resultType="int" parameterType="long">
+		select
+		count(distinct(edu_course_studyhistory.USER_ID))
+		from edu_course_studyhistory
+		where
+	    edu_course_studyhistory.COURSE_ID = #{value}
+	</select>
+	
+	<!-- 分页查看课程下的学习记录 -->
+	<select id="getCourseStudyhistoryListByCourseId" resultMap="CourseStudyHistoryDtoResult" parameterType="java.util.Map">
+		SELECT
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.USER_ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		edu_teacher.NAME AS TEACHER_NAME,
+		A.PARENT_ID,
+		B.NAME AS PARENT_NAME,
+		edu_user.USER_NAME,
+		edu_user.EMAIL,
+		edu_user.MOBILE,
+		edu_user.STUDENT_NUMBER,
+		edu_class.CLASS_ID,
+		edu_class.CLASS_NAME,
+		edu_grade.GRADE_NAME,
+		edu_major.MAJOR_NAME,
+		edu_college.COLLEGE_NAME,
+		edu_course.COURSE_NAME,
+		A.NAME
+		from edu_course_studyhistory
+		left join edu_course on edu_course.COURSE_ID = edu_course_studyhistory.COURSE_ID
+		left join edu_course_kpoint AS A on A.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		left join edu_course_kpoint AS B on B.KPOINT_ID = A.PARENT_ID
+		left join edu_teacher on edu_teacher.ID = A.TEACHER_ID
+		left join edu_user on edu_user.USER_ID = edu_course_studyhistory.USER_ID
+		left join edu_class on edu_class.CLASS_ID = edu_user.CLASS_ID
+		left join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		left join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+		left join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID
+		<where>
+		    A.KPOINT_ID is not null
+			and A.KPOINT_TYPE=1
+			and edu_course_studyhistory.COURSE_ID=#{e}
+		</where>
+		ORDER by edu_course_studyhistory.UPDATE_TIME DESC
+		<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="getCourseStudyhistoryListByCourseIdCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM edu_course_studyhistory
+	left join edu_course_kpoint on edu_course_kpoint.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+	<where>
+	    edu_course_kpoint.KPOINT_ID is not null
+		and edu_course_kpoint.KPOINT_TYPE=1
+		and edu_course_studyhistory.COURSE_ID=#{e}
+	</where>
+	</select>
+	
+	<!-- 分页查看课程下的学习记录 -->
+	<select id="getCourseStudyHistoryTimeListByCourseId" resultMap="CourseStudyHistoryDtoResult" parameterType="java.util.Map">
+	SELECT * FROM
+    ((SELECT
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		A.NAME,
+		edu_course_studyhistorytime.TIME AS UPDATE_TIME,
+		edu_teacher.NAME AS TEACHER_NAME,
+		A.PARENT_ID,
+		B.NAME AS PARENT_NAME,
+		edu_user.USER_NAME,
+		edu_user.USER_ID,
+		edu_user.EMAIL,
+		edu_user.MOBILE,
+		edu_user.STUDENT_NUMBER,
+		edu_class.CLASS_ID,
+		edu_class.CLASS_NAME,
+		edu_grade.GRADE_ID,
+		edu_grade.GRADE_NAME,
+		edu_major.MAJOR_ID,
+		edu_major.MAJOR_NAME,
+		edu_college.COLLEGE_ID,
+		edu_college.COLLEGE_NAME
+		FROM edu_user
+		INNER join (edu_course_studyhistory inner join edu_course_studyhistorytime on edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID
+               inner join edu_course_kpoint AS A on A.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		           left join edu_course_kpoint AS B on B.KPOINT_ID = A.PARENT_ID
+		           inner join edu_teacher on edu_teacher.ID = A.TEACHER_ID)
+  	on (edu_user.USER_ID = edu_course_studyhistory.USER_ID AND edu_course_studyhistory.COURSE_ID=#{e.courseId} 
+      <if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		  </if>
+		  <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		  </if>)
+		left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID )
+		UNION
+
+    (SELECT
+		null as ID,
+		null as COURSE_ID,
+		null as KPOINT_ID,
+		null as NAME,
+		null as UPDATE_TIME,
+		null as TEACHER_NAME,
+		null as PARENT_ID,
+		null as PARENT_NAME,
+		edu_user.USER_NAME,
+		edu_user.USER_ID,
+		edu_user.EMAIL,
+		edu_user.MOBILE,
+		edu_user.STUDENT_NUMBER,
+        edu_class.CLASS_ID,
+		edu_class.CLASS_NAME,
+		edu_grade.GRADE_ID,
+		edu_grade.GRADE_NAME,
+		edu_major.MAJOR_ID,
+		edu_major.MAJOR_NAME,
+		edu_college.COLLEGE_ID,
+		edu_college.COLLEGE_NAME
+		FROM edu_user
+    left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID            
+		where  edu_user.USER_ID NOT IN (SELECT edu_course_studyhistory.USER_ID
+		 FROM edu_course_studyhistory inner join edu_course_studyhistorytime on 
+		(edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID 
+		AND edu_course_studyhistory.COURSE_ID=#{e.courseId} 
+		<if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		  </if>
+		  <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		  </if>) 
+		  )))AS ABC
+
+    <where>
+			<if test="e.keyWord!=null and e.keyWord!=''">
+		    USER_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR STUDENT_NUMBER LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.classId!=null and e.classId!=0">
+			AND CLASS_ID = #{e.classId}
+		    </if>
+		    <if test="e.gradeId!=null and e.gradeId!=0">
+		  	AND GRADE_ID = #{e.gradeId}
+		    </if>
+		    <if test="e.majorId!=null and e.majorId!=0">
+			AND MAJOR_ID = #{e.majorId}
+		    </if>
+		    <if test="e.collegeId!=null and e.collegeId!=0">
+			AND COLLEGE_ID = #{e.collegeId}
+		    </if>
+		    <if test="e.teacherId==null or e.teacherId==0">
+		    AND USER_ID = 0
+		    </if>
+		    <if test="e.teacherId!=null and e.teacherId==1">
+		    </if>
+		    <if test="e.teacherId!=null and e.teacherId>1">
+			AND USER_ID IN(SELECT EDU_USER_TEACHER.USER_ID FROM EDU_USER_TEACHER INNER JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_USER_TEACHER.TERM_ID 
+			WHERE EDU_USER_TEACHER.TEACHER_ID = #{e.teacherId}
+		    <if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		    AND edu_term.GRADE_ID = #{e.gradeTermId}
+		    </if>
+		    <if test="e.termId!=null and e.termId!=0">
+		    AND edu_term.TERM_ID = #{e.termId}
+		    </if>
+		    <if test="e.courseId!=null">
+		    AND EDU_USER_TEACHER.COURSE_ID = #{e.courseId}
+		    </if>)
+		    </if>
+		</where>
+        ORDER by STUDENT_NUMBER ASC,EMAIL ASC,UPDATE_TIME DESC
+		
+		<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="getCourseStudyHistoryTimeListByCourseIdCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM
+    ((SELECT
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		A.NAME,
+		edu_course_studyhistorytime.TIME AS UPDATE_TIME,
+		edu_teacher.NAME AS TEACHER_NAME,
+		A.PARENT_ID,
+		B.NAME AS PARENT_NAME,
+		edu_user.USER_NAME,
+		edu_user.USER_ID,
+		edu_user.EMAIL,
+		edu_user.MOBILE,
+		edu_user.STUDENT_NUMBER,
+		edu_class.CLASS_ID,
+		edu_class.CLASS_NAME,
+		edu_grade.GRADE_ID,
+		edu_grade.GRADE_NAME,
+		edu_major.MAJOR_ID,
+		edu_major.MAJOR_NAME,
+		edu_college.COLLEGE_ID,
+		edu_college.COLLEGE_NAME
+		FROM edu_user
+		INNER join (edu_course_studyhistory inner join edu_course_studyhistorytime on edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID
+               inner join edu_course_kpoint AS A on A.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		           left join edu_course_kpoint AS B on B.KPOINT_ID = A.PARENT_ID
+		           inner join edu_teacher on edu_teacher.ID = A.TEACHER_ID)
+  	on (edu_user.USER_ID = edu_course_studyhistory.USER_ID AND edu_course_studyhistory.COURSE_ID=#{e.courseId} 
+      <if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		  </if>
+		  <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		  </if>)
+		left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID )
+		UNION
+
+    (SELECT
+		null as ID,
+		null as COURSE_ID,
+		null as KPOINT_ID,
+		null as NAME,
+		null as UPDATE_TIME,
+		null as TEACHER_NAME,
+		null as PARENT_ID,
+		null as PARENT_NAME,
+		edu_user.USER_NAME,
+		edu_user.USER_ID,
+		edu_user.EMAIL,
+		edu_user.MOBILE,
+		edu_user.STUDENT_NUMBER,
+        edu_class.CLASS_ID,
+		edu_class.CLASS_NAME,
+		edu_grade.GRADE_ID,
+		edu_grade.GRADE_NAME,
+		edu_major.MAJOR_ID,
+		edu_major.MAJOR_NAME,
+		edu_college.COLLEGE_ID,
+		edu_college.COLLEGE_NAME
+		FROM edu_user
+        left join (edu_class inner join edu_grade on edu_grade.GRADE_ID = edu_class.GRADE_ID
+		           inner join edu_major on edu_major.MAJOR_ID = edu_class.MAJOR_ID
+	             inner join edu_college on edu_college.COLLEGE_ID = edu_major.COLLEGE_ID) on edu_class.CLASS_ID = edu_user.CLASS_ID         
+		where  edu_user.USER_ID NOT IN (SELECT edu_course_studyhistory.USER_ID
+		 FROM edu_course_studyhistory inner join edu_course_studyhistorytime on 
+		(edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID 
+		AND edu_course_studyhistory.COURSE_ID=#{e.courseId} 
+		<if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		  </if>
+		  <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		  </if>)
+		)))AS ABC
+
+    <where>
+			<if test="e.keyWord!=null and e.keyWord!=''">
+		    USER_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR STUDENT_NUMBER LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.classId!=null and e.classId!=0">
+			AND CLASS_ID = #{e.classId}
+		    </if>
+		    <if test="e.gradeId!=null and e.gradeId!=0">
+		  	AND GRADE_ID = #{e.gradeId}
+		    </if>
+		    <if test="e.majorId!=null and e.majorId!=0">
+			AND MAJOR_ID = #{e.majorId}
+		    </if>
+		    <if test="e.collegeId!=null and e.collegeId!=0">
+			AND COLLEGE_ID = #{e.collegeId}
+		    </if>
+		    <if test="e.teacherId==null or e.teacherId==0">
+		    AND USER_ID = 0
+		    </if>
+		    <if test="e.teacherId!=null and e.teacherId==1">
+		    </if>
+		    <if test="e.teacherId!=null and e.teacherId>1">
+			AND USER_ID IN(SELECT EDU_USER_TEACHER.USER_ID FROM EDU_USER_TEACHER INNER JOIN EDU_TERM ON EDU_TERM.TERM_ID = EDU_USER_TEACHER.TERM_ID 
+			WHERE EDU_USER_TEACHER.TEACHER_ID = #{e.teacherId}
+		    <if test="e.gradeTermId!=null and e.gradeTermId!=0">
+		    AND edu_term.GRADE_ID = #{e.gradeTermId}
+		    </if>
+		    <if test="e.termId!=null and e.termId!=0">
+		    AND edu_term.TERM_ID = #{e.termId}
+		    </if>
+		    <if test="e.courseId!=null">
+		    AND EDU_USER_TEACHER.COURSE_ID = #{e.courseId}
+		    </if>)
+		    </if>
+		</where>
+	</select>
+	
+	<!-- 分页查看用户下的学习记录 -->
+	<select id="getCourseStudyhistoryListByUserId" resultMap="CourseStudyHistoryDtoResult" parameterType="java.util.Map">
+		SELECT
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.USER_ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		edu_course_studyhistory.UPDATE_TIME,
+		edu_teacher.NAME AS TEACHER_NAME,
+		edu_course.LOGO,
+		sys_user.USER_NAME AS SYS_NAME,
+		A.PARENT_ID,
+		B.NAME AS PARENT_NAME,
+		A.VIDEO_URL,
+		edu_course.COURSE_NAME,
+		A.NAME
+		from edu_course_studyhistory
+		left join edu_course_kpoint AS A on A.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		left join edu_course_kpoint AS B on B.KPOINT_ID = A.PARENT_ID
+		left join edu_teacher on edu_teacher.ID = A.TEACHER_ID
+		left join edu_course on edu_course.COURSE_ID = edu_course_studyhistory.COURSE_ID
+		left join sys_user on sys_user.USER_ID = edu_course.USER_ID
+		<where>
+		    A.KPOINT_ID is not null
+			and A.KPOINT_TYPE=1
+			and edu_course_studyhistory.USER_ID=#{e}
+		</where>
+		ORDER by edu_course_studyhistory.UPDATE_TIME DESC
+		<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="getCourseStudyhistoryListByUserIdCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM edu_course_studyhistory
+	left join edu_course_kpoint on edu_course_kpoint.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+	<where>
+	    edu_course_kpoint.KPOINT_ID is not null
+		and edu_course_kpoint.KPOINT_TYPE=1
+		and edu_course_studyhistory.USER_ID=#{e}
+	</where>
+	</select>
+	<!-- 分页查看用户下的学习记录 -->
+	<select id="getCourseStudyHistoryTimeListByUserId" resultMap="CourseStudyHistoryDtoResult" parameterType="java.util.Map">
+		SELECT
+		edu_course_studyhistory.ID,
+		edu_course_studyhistory.USER_ID,
+		edu_course_studyhistory.COURSE_ID,
+		edu_course_studyhistory.KPOINT_ID,
+		edu_course_studyhistorytime.TIME AS UPDATE_TIME,
+		edu_teacher.NAME AS TEACHER_NAME,
+		edu_course.LOGO,
+		sys_user.USER_NAME AS SYS_NAME,
+		A.PARENT_ID,
+		B.NAME AS PARENT_NAME,
+		A.VIDEO_URL,
+		edu_course.COURSE_NAME,
+		A.NAME
+		from edu_course_studyhistory
+		left join edu_course_kpoint AS A on A.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+		left join edu_course_kpoint AS B on B.KPOINT_ID = A.PARENT_ID
+		left join edu_teacher on edu_teacher.ID = A.TEACHER_ID
+		left join edu_course on edu_course.COURSE_ID = edu_course_studyhistory.COURSE_ID
+		left join sys_user on sys_user.USER_ID = edu_course.USER_ID
+		inner join edu_course_studyhistorytime on edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID
+		<where>
+		    A.KPOINT_ID is not null
+			and A.KPOINT_TYPE=1
+			and edu_course_studyhistory.USER_ID=#{e.userId}
+			<if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		    </if>
+		    <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		    </if>
+		</where>
+		ORDER by edu_course_studyhistorytime.TIME DESC
+		<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="getCourseStudyHistoryTimeListByUserIdCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM edu_course_studyhistory
+	left join edu_course_kpoint on edu_course_kpoint.KPOINT_ID = edu_course_studyhistory.KPOINT_ID
+	inner join edu_course_studyhistorytime on edu_course_studyhistorytime.HISTORY_ID = edu_course_studyhistory.ID
+	<where>
+	    edu_course_kpoint.KPOINT_ID is not null
+		and edu_course_kpoint.KPOINT_TYPE=1
+		and edu_course_studyhistory.USER_ID=#{e.userId}
+		<if test="e.beginTime!=null and e.beginTime!=''">
+			AND edu_course_studyhistorytime.TIME >= #{e.beginTime}
+		    </if>
+		    <if test="e.endTime!=null and e.endTime!=''">
+			AND <![CDATA[edu_course_studyhistorytime.TIME <= #{e.endTime}]]>
+		    </if>
+	</where>
+	</select>
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CollegeMapper">
+	<sql id="edu_college_column">
+	EDU_COLLEGE.COLLEGE_ID,
+	EDU_COLLEGE.COLLEGE_NAME
+	</sql>
+	<sql id="edu_college_property">
+	#{collegeId},
+	#{collegeName}
+	</sql>
+	<resultMap type="College" id="CollegeResult">
+	<result property="collegeId" column="COLLEGE_ID"/>
+	<result property="collegeName" column="COLLEGE_NAME"/>
+	</resultMap>
+	
+	<resultMap type="CollegeDto" id="CollegeDtoResult">
+	<result property="collegeId" column="COLLEGE_ID"/>
+	<result property="collegeName" column="COLLEGE_NAME"/>
+	</resultMap>
+	
+	<!-- 创建学院 -->
+	<insert id="createCollege" parameterType="College" useGeneratedKeys="true" keyColumn="COLLEGE_ID" keyProperty="collegeId">
+	INSERT INTO EDU_COLLEGE(<include refid="edu_college_column"/>)
+	VALUE(<include refid="edu_college_property"/>)
+	</insert>
+	
+	<!-- 查询所有学院记录 -->
+	<select id="queryColleges" resultMap="CollegeResult">
+	SELECT <include refid="edu_college_column"/> FROM EDU_COLLEGE
+	ORDER BY EDU_COLLEGE.COLLEGE_NAME ASC
+	</select>
+	
+	<select id="queryCollegesCount" resultType="int">
+	SELECT COUNT(1) FROM EDU_COLLEGE
+	</select>
+	
+	<!-- 通过学院ID，查询学院记录 -->
+	<select id="queryCollegeById" parameterType="int" resultMap="CollegeResult">
+	SELECT <include refid="edu_college_column"/> FROM EDU_COLLEGE WHERE EDU_COLLEGE.COLLEGE_ID=#{value}
+	</select>
+	
+	
+	<!-- 修改学院名称 -->
+	<update id="updateCollege" parameterType="College">
+	UPDATE EDU_COLLEGE SET 
+	EDU_COLLEGE.COLLEGE_NAME=#{collegeName}
+	WHERE EDU_COLLEGE.COLLEGE_ID=#{collegeId}
+	</update>
+	
+	<!-- 删除学院 -->
+	<delete id="deleteCollege" parameterType="int">
+	DELETE FROM EDU_COLLEGE WHERE EDU_COLLEGE.COLLEGE_ID=#{collegeId}
+	</delete>
+	
+	<select id="getCollegeListPage" resultMap="CollegeDtoResult" parameterType="java.util.HashMap">
+		select
+		<include refid="edu_college_column" />
+	        FROM EDU_COLLEGE
+			<where>
+		    <if test="e.keyWord!=null and e.keyWord!=''">
+		    AND EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    </if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+		order by EDU_COLLEGE.COLLEGE_NAME ASC
+		<include refid="publicMapper.pageEnd" />
+	</select>
+	<select id="getCollegeListPageCount" resultType="int" parameterType="java.util.HashMap">
+		select
+		count(1)
+		from edu_college
+		<where>
+			 <if test="e.keyWord!=null and e.keyWord!=''">
+		    AND EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    </if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+	</select>
+	
+
+</mapper>

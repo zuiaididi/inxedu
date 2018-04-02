@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TestQuestionSubmitMapper">
+	<sql id="edu_test_questionsubmitcolumn">
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID,
+	EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_ID,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME,
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ANSWER
+	</sql>
+	<sql id="edu_test_questionsubmitproperty">
+	#{questionSubmitId},
+	#{testSubmitId},
+	#{questionId},
+	#{questionSubmitTime},
+	#{questionSubmitAnswer}
+	</sql>
+	<resultMap type="TestQuestionSubmit" id="TestQuestionSubmitResult">
+	<result property="questionSubmitId" column="QUESTION_SUBMIT_ID"/>
+	<result property="testSubmitId" column="TEST_SUBMIT_ID"/>
+	<result property="questionId" column="QUESTION_ID"/>
+	<result property="questionSubmitTime" column="QUESTION_SUBMIT_TIME"/>
+	<result property="questionSubmitAnswer" column="QUESTION_SUBMIT_ANSWER"/>
+	</resultMap>
+	
+	<!-- 创建问题提交记录 -->
+	<insert id="createTestQuestionSubmit" parameterType="TestQuestionSubmit" useGeneratedKeys="true" keyColumn="QUESTION_SUBMIT_ID" keyProperty="questionSubmitId">
+	INSERT INTO EDU_TEST_QUESTIONSUBMIT(<include refid="edu_test_questionsubmitcolumn"/>)
+	VALUE(<include refid="edu_test_questionsubmitproperty"/>)
+	</insert>
+	
+	<!-- 通过问题提交ID，查询问题提交记录 -->
+	<select id="queryTestQuestionSubmitByQuestionSubmitId" parameterType="int" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID=#{value}
+	</select>
+	
+	<!-- 通过测验提交ID，查询问题提交记录 -->
+	<select id="queryTestQuestionSubmitByTestSubmitId" parameterType="int" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	WHERE EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=#{value}
+	</select>
+	
+	<!-- 通过问题ID，查询问题提交记录 -->
+	<select id="queryTestQuestionSubmitByQuestionId" parameterType="int" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_ID=#{value}
+	</select>
+	
+	<!-- 通过问题ID和测验提交ID，查询问题提交记录 -->
+	<select id="queryTestQuestionSubmitByQuestionIdAndTestSubmitId" parameterType="TestQuestionSubmit" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_ID=#{questionId} AND EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=#{testSubmitId}
+	order by EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME DESC
+	</select>
+	
+	<!-- 通过问题ID和用户ID，查询问题提交记录 -->
+	<select id="queryTestQuestionSubmitByQuestionIdAndUserId" parameterType="TestQuestionSubmit" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	INNER JOIN EDU_TEST_SUBMIT ON EDU_TEST_SUBMIT.TEST_SUBMIT_ID = EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID
+	WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_ID=#{questionId} AND EDU_TEST_SUBMIT.USER_ID=#{userId}
+	order by EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME DESC
+	</select>
+	
+	<!-- 删除问题提交记录 -->
+	<delete id="deleteTestQuestionSubmit" parameterType="int">
+	DELETE FROM EDU_TEST_QUESTIONSUBMIT WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID=#{questionSubmitId}
+	</delete>
+	
+	<!-- 修改问题提交记录-->
+	<update id="updateTestQuestionSubmit" parameterType="TestQuestionSubmit">
+	UPDATE EDU_TEST_QUESTIONSUBMIT SET 
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME=#{questionSubmitTime},
+	EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ANSWER=#{questionSubmitAnswer}
+	WHERE EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_ID=#{questionSubmitId}
+	</update>
+	
+	<!-- 分页查询问题提交列表，开始 -->
+	<select id="queryTestQuestionSubmitListPage" parameterType="java.util.Map" resultMap="TestQuestionSubmitResult">
+	SELECT <include refid="edu_test_questionsubmitcolumn"/>  
+	FROM EDU_TEST_QUESTIONSUBMIT
+	<where>
+		<if test="e.testSubmitId!=null and e.testSubmitId>0">
+		EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=#{e.testSubmitId}
+		</if>
+		<if test="e.questionId!=null and e.questionId>0">
+		EDU_TEST_QUESTIONSUBMIT.QUESTION_ID=#{e.questionId}
+		</if>
+	</where>
+	order by EDU_TEST_QUESTIONSUBMIT.QUESTION_SUBMIT_TIME DESC
+	<include refid="publicMapper.pageEnd"/>
+	</select>
+	<select id="queryTestQuestionSubmitListPageCount" parameterType="java.util.Map" resultType="int">
+	SELECT COUNT(1) FROM EDU_TEST_QUESTIONSUBMIT 
+	<where>
+		<if test="e.testSubmitId!=null and e.testSubmitId>0">
+		EDU_TEST_QUESTIONSUBMIT.TEST_SUBMIT_ID=#{e.testSubmitId}
+		</if>
+		<if test="e.questionId!=null and e.questionId>0">
+		EDU_TEST_QUESTIONSUBMIT.QUESTION_ID=#{e.questionId}
+		</if>
+	</where>
+	</select>
+	<!-- 分页查询 问题提交列表，结束-->
+	
+</mapper>

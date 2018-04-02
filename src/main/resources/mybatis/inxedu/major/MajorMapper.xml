@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MajorMapper">
+	<sql id="edu_major_column">
+	EDU_MAJOR.MAJOR_ID,
+	EDU_MAJOR.MAJOR_NAME,
+	EDU_MAJOR.COLLEGE_ID
+	</sql>
+	<sql id="edu_major_property">
+	#{majorId},
+	#{majorName},
+	#{collegeId}
+	</sql>
+	<resultMap type="Major" id="MajorResult">
+	<result property="majorId" column="MAJOR_ID"/>
+	<result property="majorName" column="MAJOR_NAME"/>
+	<result property="collegeId" column="COLLEGE_ID"/>
+	</resultMap>
+	
+	<resultMap type="MajorDto" id="MajorDtoResult">
+	<result property="majorId" column="MAJOR_ID"/>
+	<result property="majorName" column="MAJOR_NAME"/>
+	<result property="collegeId" column="COLLEGE_ID"/>
+	<result property="collegeName" column="COLLEGE_NAME"/>
+	</resultMap>
+	
+	<!-- 创建专业 -->
+	<insert id="createMajor" parameterType="Major" useGeneratedKeys="true" keyColumn="MAJOR_ID" keyProperty="majorId">
+	INSERT INTO EDU_MAJOR(<include refid="edu_major_column"/>)
+	VALUE(<include refid="edu_major_property"/>)
+	</insert>
+	
+	<!-- 通过专业ID，查询专业记录 -->
+	<select id="queryMajorById" parameterType="int" resultMap="MajorResult">
+	SELECT <include refid="edu_major_column"/> FROM EDU_MAJOR WHERE EDU_MAJOR.MAJOR_ID=#{value}
+	</select>
+	
+	<select id="queryMajorDtoById" parameterType="int" resultMap="MajorDtoResult">
+	SELECT <include refid="edu_major_column"/>,
+	EDU_COLLEGE.COLLEGE_NAME
+	FROM EDU_MAJOR
+	LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID 
+    WHERE EDU_MAJOR.MAJOR_ID=#{value}
+	</select>
+	
+	<!-- 通过学院ID，查询专业记录 -->
+	<select id="queryMajors" parameterType="int" resultMap="MajorResult">
+	SELECT <include refid="edu_major_column"/> FROM EDU_MAJOR WHERE EDU_MAJOR.COLLEGE_ID=#{value}
+	ORDER BY EDU_MAJOR.MAJOR_NAME ASC
+	</select>
+	
+	<select id="queryMajorsCount" parameterType="int" resultType="int">
+	SELECT COUNT(1) FROM EDU_MAJOR WHERE EDU_MAJOR.COLLEGE_ID=#{value}
+	</select>
+	
+	<!-- 修改专业名称 -->
+	<update id="updateMajor" parameterType="Major">
+	UPDATE EDU_MAJOR SET 
+	EDU_MAJOR.MAJOR_NAME=#{majorName}
+	WHERE EDU_MAJOR.MAJOR_ID=#{majorId}
+	</update>
+	
+	<!-- 删除专业 -->
+	<delete id="deleteMajor" parameterType="int">
+	DELETE FROM EDU_MAJOR WHERE EDU_MAJOR.MAJOR_ID=#{majorId}
+	</delete>
+	
+	<select id="getMajorListPage" resultMap="MajorDtoResult" parameterType="java.util.HashMap">
+		select
+		<include refid="edu_major_column" />,
+	EDU_COLLEGE.COLLEGE_NAME
+	FROM EDU_MAJOR
+	LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID
+		<where>
+		    <if test="e.keyWord!=null and e.keyWord!=''">
+		    AND (EDU_MAJOR.MAJOR_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.majorId !=null and e.majorId > 0 ">
+				AND EDU_MAJOR.MAJOR_ID = #{e.majorId}
+			</if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+		order by EDU_COLLEGE.COLLEGE_NAME ASC,EDU_MAJOR.MAJOR_NAME ASC
+		<include refid="publicMapper.pageEnd" />
+	</select>
+	<select id="getMajorListPageCount" resultType="int" parameterType="java.util.HashMap">
+		select
+		count(1)
+		from edu_major
+		LEFT JOIN EDU_COLLEGE ON EDU_COLLEGE.COLLEGE_ID = EDU_MAJOR.COLLEGE_ID
+		<where>
+			<if test="e.keyWord!=null and e.keyWord!=''">
+		    AND (EDU_MAJOR.MAJOR_NAME LIKE CONCAT('%',#{e.keyWord},'%') 
+		    OR EDU_COLLEGE.COLLEGE_NAME LIKE CONCAT('%',#{e.keyWord},'%'))
+		    </if>
+			<if test="e.majorId !=null and e.majorId > 0 ">
+				AND EDU_MAJOR.MAJOR_ID = #{e.majorId}
+			</if>
+			<if test="e.collegeId !=null and e.collegeId > 0 ">
+				AND EDU_COLLEGE.COLLEGE_ID = #{e.collegeId}
+			</if>
+		</where>
+	</select>
+
+</mapper>

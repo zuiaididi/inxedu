@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CourseStudyHistoryTimeMapper">
+
+<resultMap id="CourseStudyHistoryTimeResult" type="CourseStudyHistoryTime">
+		<result property="id" column="ID" />
+		<result property="historyId" column="HISTORY_ID" />
+		<result property="time" column="TIME" />
+	</resultMap>
+	
+	<sql id="edu_course_studyhistorytime_columns">
+		edu_course_studyhistorytime.ID,
+		edu_course_studyhistorytime.HISTORY_ID,
+		edu_course_studyhistorytime.TIME
+	</sql>
+
+	<sql id="edu_course_studyhistorytime_properties">
+		#{id},
+		#{historyId},
+		#{time}
+	</sql>
+	
+	<insert id="createCourseStudyHistoryTime" parameterType="CourseStudyHistoryTime"
+		keyColumn="ID" keyProperty="id" useGeneratedKeys="true">
+		insert INTO edu_course_studyhistorytime (
+		<include refid="edu_course_studyhistorytime_columns" />
+		) VALUES (
+		<include refid="edu_course_studyhistorytime_properties" />
+		)
+	</insert>
+
+	<delete id="deleteCourseStudyHistoryTimeById" parameterType="Long">
+		delete
+		from edu_course_studyhistorytime
+		where
+		ID = #{value}
+	</delete>
+	
+	<delete id="deleteCourseStudyHistoryTimeByHistory" parameterType="Long">
+	    delete
+		from edu_course_studyhistorytime
+		where HISTORY_ID = #{value}
+	</delete>
+	
+	<delete id="deleteCourseStudyHistoryTimeByHistories" parameterType="String">
+	    delete
+		from edu_course_studyhistorytime
+		where HISTORY_ID IN  (${value})
+	</delete>
+	
+	<delete id="deleteCourseStudyHistoryTimeByUserId" parameterType="Long">
+	    delete
+		from edu_course_studyhistorytime
+		where HISTORY_ID IN
+		(SELECT ID FROM edu_course_studyhistory 
+		WHERE USER_ID = #{value})
+	</delete>
+	
+	<delete id="deleteCourseStudyHistoryTimeByCourseId" parameterType="Long">
+	    delete
+		from edu_course_studyhistorytime
+		where HISTORY_ID IN
+		(SELECT ID FROM edu_course_studyhistory 
+		WHERE COURSE_ID = #{value})
+	</delete>
+	
+	<delete id="deleteCourseStudyHistoryTimeByKpointId" parameterType="Long">
+	    delete
+		from edu_course_studyhistorytime
+		where HISTORY_ID IN
+		(SELECT ID FROM edu_course_studyhistory 
+		WHERE KPOINT_ID = #{value})
+	</delete>
+</mapper>
